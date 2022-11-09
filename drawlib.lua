@@ -1,4 +1,23 @@
 local l = {} -- by boui
+
+local a = game:GetService("UserInputService")
+local b = game:GetService("RunService")
+local c = game:GetService("TweenService")
+local d = game:GetService("Players")
+local e = game:GetService("ContextActionService")
+local f = game:GetService("Stats")
+local g = {
+    connections = {},
+    accents = {},
+    drawings = {},
+    hidden = {},
+    pointers = {},
+    flags = {},
+    preloaded_images = {},
+    game_name = "universal",
+    loaded = false
+}
+
 do
     function l:Draw(m, n, o, p)
         p = p or false
