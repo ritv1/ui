@@ -1,0 +1,278 @@
+local l = {}
+do
+    function l:Draw(m, n, o, p)
+        p = p or false
+        local q = Drawing.new(m)
+        local r = {}
+        rawset(r, "__OBJECT_EXIST", true)
+        setmetatable(
+            r,
+            {
+                __index = function(self, s)
+                    if rawget(r, "__OBJECT_EXIST") then
+                        return q[s]
+                    end
+                end,
+                __newindex = function(self, s, t)
+                    if rawget(r, "__OBJECT_EXIST") then
+                        q[s] = t
+                        if s == "Position" then
+                            for u, k in pairs(rawget(r, "children")) do
+                                k.Position = r.Position + k.GetOffset()
+                            end
+                        end
+                    end
+                end
+            }
+        )
+        rawset(
+            r,
+            "Remove",
+            function()
+                if rawget(r, "__OBJECT_EXIST") then
+                    q:Remove()
+                    rawset(r, "__OBJECT_EXIST", false)
+                end
+            end
+        )
+        rawset(
+            r,
+            "GetType",
+            function()
+                return m
+            end
+        )
+        rawset(
+            r,
+            "GetOffset",
+            function()
+                return n or Vector2.new()
+            end
+        )
+        rawset(
+            r,
+            "SetOffset",
+            function(v)
+                n = v or Vector2.new()
+                r.Position = o.Parent.Position + r.GetOffset()
+            end
+        )
+        rawset(r, "children", {})
+        rawset(
+            r,
+            "Lerp",
+            function(w, x)
+                if not rawget(r, "__OBJECT_EXIST") then
+                    return
+                end
+                local y = 0
+                local z = {}
+                local A
+                for j, k in pairs(w) do
+                    z[j] = r[j]
+                end
+                local function B()
+                    for j, k in pairs(w) do
+                        r[j] = (k - z[j]) * y / x + z[j]
+                    end
+                end
+                A =
+                    b.RenderStepped:Connect(
+                    function(C)
+                        if y < x then
+                            y = y + C
+                            B()
+                        else
+                            A:Disconnect()
+                        end
+                    end
+                )
+                table.insert(g.connections, A)
+            end
+        )
+        local D = {
+            ["Parent"] = function(E)
+                table.insert(rawget(E, "children"), r)
+            end
+        }
+        if m == "Square" then
+            r.Thickness = 1
+            r.Filled = true
+        end
+        if m ~= "Image" then
+            r.Color = Color3.new(0, 0, 0)
+        end
+        r.Visible = g.loaded
+        if o ~= nil then
+            for s, t in pairs(o) do
+                if D[s] == nil then
+                    r[s] = t
+                else
+                    D[s](t)
+                end
+            end
+            if o.Parent then
+                r.Position = o.Parent.Position + r.GetOffset()
+            end
+            if o.Parent and o.From then
+                r.From = o.Parent.Position + r.GetOffset()
+            end
+            if o.Parent and o.To then
+                r.To = o.Parent.Position + r.GetOffset()
+            end
+        end
+        if not g.loaded and not p then
+            r.Transparency = 0
+        end
+        if not p then
+            table.insert(g.drawings, {r, o["Transparency"] or 1})
+        else
+            table.insert(g.hidden, {r, o["Transparency"] or 1})
+        end
+        return r
+    end
+    function l:ScreenSize()
+        return workspace.CurrentCamera.ViewportSize
+    end
+    function l:RoundVector(F)
+        return Vector2.new(math.floor(F.X), math.floor(F.Y))
+    end
+    function l:MouseOverDrawing(E)
+        local G = {E.Position, E.Position + E.Size}
+        local H = a:GetMouseLocation()
+        return H.X >= G[1].X and H.Y >= G[1].Y and H.X <= G[2].X and H.Y <= G[2].Y
+    end
+    function l:MouseOverPosition(G)
+        local H = a:GetMouseLocation()
+        return H.X >= G[1].X and H.Y >= G[1].Y and H.X <= G[2].X and H.Y <= G[2].Y
+    end
+    function l:PreloadImage(I)
+        local J = g.preloaded_images[I] or game:HttpGet(I)
+        if g.preloaded_images[I] == nil then
+            g.preloaded_images[I] = J
+        end
+        return J
+    end
+    function l:Image(E, I)
+        local J = g.preloaded_images[I] or game:HttpGet(I)
+        if g.preloaded_images[I] == nil then
+            g.preloaded_images[I] = J
+        end
+        E.Data = J
+    end
+    function l:Connect(A, K)
+        local L = A:Connect(K)
+        table.insert(g.connections, L)
+        return L
+    end
+    function l:BindToRenderStep(M, N, K)
+        local O = {}
+        function O:Disconnect()
+            b:UnbindFromRenderStep(M)
+        end
+        b:BindToRenderStep(M, N, K)
+        return O
+    end
+    function l:Combine(P, Q)
+        local R = {}
+        for j, k in pairs(P) do
+            table.insert(R, k)
+        end
+        for j, k in pairs(Q) do
+            table.insert(R, k)
+        end
+        return R
+    end
+    function l:GetTextSize(S, T, U)
+        local V = Drawing.new("Text")
+        V.Size = U
+        V.Font = T
+        V.Text = S
+        local W = V.TextBounds
+        V:Remove()
+        return W
+    end
+    function l:RemoveItem(X, Y)
+        local Z = {}
+        for j, k in pairs(X) do
+            if k ~= Y then
+                table.insert(Z, k)
+            end
+        end
+        return Z
+    end
+    function l:CopyTable(X)
+        local Z = {}
+        for j, k in pairs(X) do
+            Z[j] = k
+        end
+        return Z
+    end
+    function l:GetClipboard()
+        local _ = Instance.new("ScreenGui", game.CoreGui)
+        local a0 = Instance.new("TextBox", _)
+        a0.AnchorPoint = Vector2.new(0.5, 0.5)
+        a0.Size = UDim2.new(0, 200, 0, 50)
+        a0.BackgroundTransparency = 1
+        a0.Position = UDim2.new(0.5, 0, 0.5, 0)
+        a0.Text = ""
+        a0.TextTransparency = 1
+        a0:CaptureFocus()
+        keypress(0x11)
+        keypress(0x56)
+        wait()
+        keyrelease(0x56)
+        keyrelease(0x11)
+        local t = a0.Text
+        _:Destroy()
+        return t
+    end
+    function l.EspAddPlayer(a1)
+        h[a1] = {
+            BoxOutline = l:Draw("Square", Vector2.new(), {Visible = false, Filled = false, Thickness = 3}, true),
+            Box = l:Draw("Square", Vector2.new(), {Visible = false, Filled = false, ZIndex}, true),
+            HealthOutline = l:Draw("Square", Vector2.new(), {Visible = false}, true),
+            Health = l:Draw("Square", Vector2.new(), {Visible = false}, true),
+            Name = l:Draw(
+                "Text",
+                Vector2.new(),
+                {Size = 13, Font = 2, Text = a1.Name, Outline = true, Center = true, Visible = false},
+                true
+            )
+        }
+    end
+    function l.EspRemovePlayer(a1)
+        if h[a1] then
+            for j, k in pairs(h[a1]) do
+                k.Remove()
+            end
+            h[a1] = nil
+        end
+    end
+    function l:ShiftKey(s)
+        if string.byte(s) >= 65 and string.byte(s) <= 122 and string.byte(s) ~= 92 then
+            return s:upper()
+        else
+            local a2 = {
+                ["-"] = "_",
+                ["="] = "+",
+                ["1"] = "!",
+                ["2"] = "@",
+                ["3"] = "#",
+                ["4"] = "$",
+                ["5"] = "%",
+                ["6"] = "^",
+                ["7"] = "&",
+                ["8"] = "*",
+                ["9"] = "(",
+                ["0"] = ")",
+                [";"] = ":",
+                [string.char(39)] = string.char(34),
+                [string.char(92)] = "|",
+                ["/"] = "?"
+            }
+            return a2[s] or s
+        end
+    end
+end
+return l
